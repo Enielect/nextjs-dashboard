@@ -1,4 +1,4 @@
-import createInvoice from '@/app/lib/actions';
+import {createInvoice} from '@/app/lib/actions';
 
 import { CustomerField } from '@/app/lib/definitions';
 import Link from 'next/link';
