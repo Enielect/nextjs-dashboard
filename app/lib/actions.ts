@@ -1,7 +1,8 @@
-'use-server';
+'use server';
 
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 //type validation and coercion
@@ -34,5 +35,37 @@ export async function createInvoice(formData: FormData) {
   VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
 `;
   //revalidating the cache, to load a fresh new invoice page as a result of this data update
+  // Once the database has been updated, the /dashboard/invoices path will be revalidated, and fresh data will be fetched from the server.
+  revalidatePath('/dashboard/invoices');
+
+  //redirecting the user to the invoice page
+  redirect('/dashboard/invoices');
+}
+
+
+const UpdateInvoice = FormSchema.omit({id: true, data: true});
+
+export async function updateInvoice(id: string, formData: FormData) {
+  const { customerId, amount, status } = UpdateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+ 
+  const amountInCents = amount * 100;
+ 
+  await sql`
+    UPDATE invoices
+    SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+    WHERE id = ${id}
+  `;
+ 
+  revalidatePath('/dashboard/invoices');
+  redirect('/dashboard/invoices');
+}
+
+//deleting an invoice
+export async function deleteInvoice(id: string) {
+  await sql`DELETE FROM invoices WHERE id = ${id}`;
   revalidatePath('/dashboard/invoices');
 }
