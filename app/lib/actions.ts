@@ -1,5 +1,7 @@
 'use server';
 
+import { signIn } from '@//auth';
+import { AuthError } from 'next-auth';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -30,7 +32,6 @@ export type State = {
   message?: string | null;
 };
 
-
 // prevState - contains the state passed from the useFormState hook. You won't be using it in the action in this example, but it's a required prop.
 
 export async function createInvoice(prevState: State, formData: FormData) {
@@ -38,18 +39,16 @@ export async function createInvoice(prevState: State, formData: FormData) {
 
   // const { customerId, amount, status } = createInvoice.parse({
 
-
   // safeParse() will return an object containing either a success or error field. This will help handle validation more gracefully without having put this logic inside the try/catch block.
 
-    const validatedFields = CreateInvoice.safeParse({
+  const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
 
-  
   //if form validation fails, return errors early. Otherwise, continue
-  
+
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
@@ -57,7 +56,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
     };
   }
   //prepare data for insertion into database
-  const {customerId, amount, status} = validatedFields.data;
+  const { customerId, amount, status } = validatedFields.data;
 
   const amountInCents = amount * 100;
 
@@ -122,5 +121,24 @@ export async function deleteInvoice(id: string) {
     return {
       message: 'Database Error: Unable to delete invoice. Please try again.',
     };
+  }
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+    throw error;
   }
 }
