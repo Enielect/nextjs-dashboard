@@ -1,6 +1,5 @@
 'use client';
 
-
 import { lusitana } from '@/app/ui/fonts';
 import {
   AtSymbolIcon,
@@ -13,15 +12,12 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { authenticate } from '@/app/lib/actions';
 
 export default function LoginForm() {
+  // Finally, in your login-form.tsx component, you can use React's
+  //  useFormState to call the server action and handle form errors,
+  //   and use useFormStatus to handle the pending state of the form:
 
-
-// Finally, in your login-form.tsx component, you can use React's
-//  useFormState to call the server action and handle form errors,
-//   and use useFormStatus to handle the pending state of the form:
-
-const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
   return (
-    
     <form action={dispatch} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
         <h1 className={`${lusitana.className} mb-3 text-2xl`}>
@@ -87,9 +83,9 @@ const [errorMessage, dispatch] = useFormState(authenticate, undefined);
 }
 
 function LoginButton() {
-  const {pending} = useFormStatus();
+  const { pending } = useFormStatus();
   return (
-    <Button className="mt-4 w-full">
+    <Button className="mt-4 w-full" aria-disabled={pending}>
       Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
     </Button>
   );
